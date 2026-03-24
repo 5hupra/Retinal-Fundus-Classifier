@@ -93,24 +93,59 @@ function ResultCard({ result, imageUrl }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
 
-      {/* Image preview */}
+      {/* Image + Grad-CAM */}
       <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
-        <img
-          src={imageUrl}
-          alt="Uploaded fundus"
-          className="w-full h-64 object-cover"
-        />
-        <div className="p-4">
-          <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">
-            Uploaded image
-          </p>
-          <p className="text-sm text-slate-600">
-            Preprocessed with CLAHE enhancement before inference
+        <div className="grid grid-cols-2 divide-x divide-slate-200">
+
+          {/* Original */}
+          <div>
+            <img
+              src={imageUrl}
+              alt="Original fundus"
+              className="w-full h-52 object-cover"
+            />
+            <div className="p-3">
+              <p className="text-xs text-slate-400 font-medium uppercase tracking-wide">
+                Original
+              </p>
+            </div>
+          </div>
+
+          {/* Grad-CAM */}
+          <div>
+            {result.gradcam ? (
+              <>
+                <img
+                  src={result.gradcam}
+                  alt="Grad-CAM heatmap"
+                  className="w-full h-52 object-cover"
+                />
+                <div className="p-3">
+                  <p className="text-xs text-slate-400 font-medium uppercase tracking-wide">
+                    Grad-CAM — model focus
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div className="w-full h-52 flex items-center justify-center bg-slate-100">
+                <p className="text-xs text-slate-400">Heatmap unavailable</p>
+              </div>
+            )}
+          </div>
+
+        </div>
+
+        {/* Grad-CAM explanation */}
+        <div className="px-4 pb-4">
+          <p className="text-xs text-slate-500 leading-snug">
+            Red/yellow regions show where EfficientNetV2-M focused to make
+            this prediction. For Glaucoma this should highlight the optic disc.
+            For DR it should highlight the macula or blood vessel regions.
           </p>
         </div>
       </div>
 
-      {/* Prediction */}
+      {/* Prediction card */}
       <div className="flex flex-col gap-4">
 
         {/* Top prediction badge */}
@@ -120,19 +155,31 @@ function ResultCard({ result, imageUrl }) {
         >
           <p className="text-sm font-medium opacity-80 mb-1">Prediction</p>
           <p className="text-2xl font-bold">{result.full_name}</p>
-          <p className="text-4xl font-black mt-1">{result.confidence.toFixed(1)}%</p>
+          <p className="text-4xl font-black mt-1">
+            {result.confidence.toFixed(1)}%
+          </p>
           <p className="text-sm mt-2 opacity-80 leading-snug">
             {DISEASE_DESCRIPTIONS[result.prediction]}
           </p>
         </div>
 
-        {/* Disclaimer */}
+        {/* Low confidence warning */}
+        {result.low_confidence && (
+          <div className="rounded-xl bg-amber-50 border border-amber-200 p-3">
+            <p className="text-xs text-amber-700 font-medium leading-snug">
+              {result.warning}
+            </p>
+          </div>
+        )}
+
+        {/* Medical disclaimer */}
         <div className="rounded-xl bg-amber-50 border border-amber-200 p-3">
           <p className="text-xs text-amber-700 leading-snug">
             This is an AI research tool and not a medical diagnosis.
             Always consult a qualified ophthalmologist.
           </p>
         </div>
+
       </div>
 
       {/* All class scores */}
@@ -152,6 +199,7 @@ function ResultCard({ result, imageUrl }) {
           ))}
         </div>
       </div>
+
     </div>
   );
 }
